@@ -223,6 +223,39 @@ class SimProcessor(DataProcessor):
 
 
 
+class StsProcessor(DataProcessor):
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-train.tsv")), "train")
+
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-dev.tsv")), "dev")
+
+  def get_test_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+      self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-test.tsv")), "test")
+
+  def _create_examples(self, lines, set_type):
+    """Creates examples for the training and dev sets."""
+    examples = []
+    for (i, line) in enumerate(lines):
+      guid = "%s-%s" % (set_type, i)
+      text_a = tokenization.convert_to_unicode(line[5])
+      text_b = tokenization.convert_to_unicode(line[6])
+      if set_type == "test":
+        label = "-1"
+      else:
+        label = tokenization.convert_to_unicode(line[4])
+      examples.append(
+          InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+    return examples
+
+
 
 def convert_single_example(ex_index, example, max_seq_length,
                            tokenizer):
@@ -612,6 +645,7 @@ def main(_):
 
   processors = {
       "sim": SimProcessor,
+      "sts-b": StsProcessor
   }
 
   if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict:
