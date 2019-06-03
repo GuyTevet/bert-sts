@@ -547,10 +547,19 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
     elif mode == tf.estimator.ModeKeys.EVAL:
 
       def metric_fn(preds, vals):
-
-        return {
-            "eval_loss": tf.metrics.mean_squared_error(vals, preds),
-        }
+        mse = tf.metrics.mean_squared_error(vals, preds)
+        
+        # Compute Spearman correlation
+        size = tf.size(vals)
+        indice_of_ranks_pred = tf.nn.top_k(preds, k=size)[1]
+        indice_of_ranks_label = tf.nn.top_k(vals, k=size)[1]
+        rank_pred = tf.nn.top_k(-indice_of_ranks_pred, k=size)[1]
+        rank_label = tf.nn.top_k(-indice_of_ranks_label, k=size)[1]
+        rank_pred = tf.to_float(rank_pred)
+        rank_label = tf.to_float(rank_label)
+        spearman = tf.contrib.metrics.streaming_pearson_correlation(rank_pred, rank_label)
+        
+        return {'spearman': spearman, 'MSE': mse}
 
       eval_metrics = (metric_fn, [pred_vals, vals])
       output_spec = tf.contrib.tpu.TPUEstimatorSpec(
