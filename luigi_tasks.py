@@ -4,6 +4,7 @@ import tarfile
 from pathlib import Path
 
 import luigi
+import tensorflow as tf
 from luigi.util import inherits, requires
 
 
@@ -137,16 +138,21 @@ class FinetuneBertForSts(luigi.Task):
 
     
     def run(self):
+        finetuned_checkpoint = tf.train.latest_checkpoint(self.bert_finetuned_dir)
+        pretrained_checkpoint = tf.train.latest_checkpoint(self.bert_pretrained_dir)
+        init_checkpoint = pretrained_checkpoint if finetuned_checkpoint is None else finetuned_checkpoint
+        print(init_checkpoint)
+
         cmd = [
             "python",
             "./run_reg.py",
             "--task_name=sts-b",
-            "--do_train=false",
+            "--do_train=true",
             "--do_eval=true",
             f"--data_dir={Path(self.data_dir)}",
             f"--vocab_file={Path(self.bert_pretrained_dir) / 'vocab.txt'}",
             f"--bert_config_file={Path(self.bert_pretrained_dir) / 'bert_config.json'}",
-            f"--init_checkpoint={Path(self.bert_finetuned_dir) / 'model.ckpt-28745'}",
+            f"--init_checkpoint={init_checkpoint}",
             "--max_seq_length=512",
             "--train_batch_size=2",
             "--learning_rate=2e-5",
