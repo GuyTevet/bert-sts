@@ -141,7 +141,6 @@ class FinetuneBertForSts(luigi.Task):
         finetuned_checkpoint = tf.train.latest_checkpoint(self.bert_finetuned_dir)
         pretrained_checkpoint = tf.train.latest_checkpoint(self.bert_pretrained_dir)
         init_checkpoint = pretrained_checkpoint if finetuned_checkpoint is None else finetuned_checkpoint
-        print(init_checkpoint)
 
         cmd = [
             "python",
