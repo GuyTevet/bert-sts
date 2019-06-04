@@ -125,6 +125,10 @@ class FinetuneBertForSts(luigi.Task):
     data_dir = luigi.Parameter(default='./data')
     bert_pretrained_dir = luigi.Parameter(default='./model_pretrained/BERT')
     bert_finetuned_dir = luigi.Parameter(default='./model_finetuned/BERT_STS')
+    max_seq_length = luigi.IntParameter(default=512)
+    train_batch_size = luigi.IntParameter(default=2)
+    learning_rate = luigi.FloatParameter(default=2e-5)
+    num_train_epochs = luigi.IntParameter(default=10)
 
 
     def requires(self):
@@ -152,10 +156,10 @@ class FinetuneBertForSts(luigi.Task):
             f"--vocab_file={Path(self.bert_pretrained_dir) / 'vocab.txt'}",
             f"--bert_config_file={Path(self.bert_pretrained_dir) / 'bert_config.json'}",
             f"--init_checkpoint={init_checkpoint}",
-            "--max_seq_length=512",
-            "--train_batch_size=2",
-            "--learning_rate=2e-5",
-            "--num_train_epochs=10",
+            f"--max_seq_length={self.max_seq_length}",
+            f"--train_batch_size={self.train_batch_size}",
+            f"--learning_rate={self.learning_rate}",
+            f"--num_train_epochs={self.num_train_epochs}",
             f"--output_dir={Path(self.bert_finetuned_dir)}"
         ]
         subprocess.run(cmd, check=True)
