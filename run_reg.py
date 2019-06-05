@@ -250,7 +250,7 @@ class StsProcessor(DataProcessor):
       if set_type == "test":
         label = "-1"
       else:
-        label = tokenization.convert_to_unicode(line[4])
+        label = float(tokenization.convert_to_unicode(line[4])) / 5.0
       examples.append(
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
