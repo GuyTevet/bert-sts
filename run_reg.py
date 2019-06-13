@@ -544,7 +544,7 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
 
       def metric_fn(preds, vals):
         mse = tf.metrics.mean_squared_error(vals, preds)
-        pearson = tf.metrics.streaming_pearson_correlation(preds, vals)
+        pearson = tf.contrib.metrics.streaming_pearson_correlation(preds, vals)
         
         # Compute Spearman correlation
         size = tf.size(vals)
