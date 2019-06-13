@@ -544,6 +544,7 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
 
       def metric_fn(preds, vals):
         mse = tf.metrics.mean_squared_error(vals, preds)
+        pearson = tf.metrics.streaming_pearson_correlation(preds, vals)
         
         # Compute Spearman correlation
         size = tf.size(vals)
@@ -555,7 +556,7 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
         rank_label = tf.to_float(rank_label)
         spearman = tf.contrib.metrics.streaming_pearson_correlation(rank_pred, rank_label)
         
-        return {'spearman': spearman, 'MSE': mse}
+        return {'MSE': mse, 'Pearson': pearson, 'Spearman': spearman}
 
       eval_metrics = (metric_fn, [pred_vals, vals])
       output_spec = tf.contrib.tpu.TPUEstimatorSpec(
