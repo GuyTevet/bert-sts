@@ -71,7 +71,7 @@ flags.DEFINE_bool("do_train", False, "Whether to run training.")
 
 flags.DEFINE_bool("do_eval", False, "Whether to run eval on the dev set.")
 
-flags.DEFINE_bool("do_predict", False, "Whether to run the model in inference mode on the test set.")
+flags.DEFINE_bool("do_test", False, "Whether to run the model in inference mode on the test set.")
 
 flags.DEFINE_integer("train_batch_size", 32, "Total batch size for training.")
 
@@ -656,9 +656,9 @@ def main(_):
       "sts-b": StsProcessor
   }
 
-  if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict:
+  if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_test:
     raise ValueError(
-        "At least one of `do_train`, `do_eval` or `do_predict' must be True.")
+        "At least one of `do_train`, `do_eval` or `do_test' must be True.")
 
   bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
 
@@ -774,36 +774,39 @@ def main(_):
         tf.logging.info("  %s = %s", key, str(result[key]))
         writer.write("%s = %s\n" % (key, str(result[key])))
 
-  if FLAGS.do_predict:
-    predict_examples = processor.get_test_examples(FLAGS.data_dir)
-    predict_file = os.path.join(FLAGS.output_dir, "predict.tf_record")
-    file_based_convert_examples_to_features(predict_examples,
-                                 FLAGS.max_seq_length, tokenizer, predict_file)
+  if FLAGS.do_test:
+    test_examples = processor.get_test_examples(FLAGS.data_dir)
+    test_features = convert_examples_to_features(
+        test_examples, FLAGS.max_seq_length, tokenizer)
 
-    tf.logging.info("***** Running prediction*****")
-    tf.logging.info("  Num examples = %d", len(predict_examples))
-    tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
+    tf.logging.info("***** Running test *****")
+    tf.logging.info("  Num examples = %d", len(test_examples))
+    tf.logging.info("  Batch size = %d", FLAGS.test_batch_size)
 
+    # This tells the estimator to run through the entire set.
+    test_steps = None
+    # However, if running eval on the TPU, you will need to specify the
+    # number of steps.
     if FLAGS.use_tpu:
-      # Warning: According to tpu_estimator.py Prediction on TPU is an
-      # experimental feature and hence not supported here
-      raise ValueError("Prediction in TPU not supported")
+      # Eval will be slightly WRONG on the TPU because it will truncate
+      # the last batch.
+      test_steps = int(len(test_examples) / FLAGS.test_batch_size)
 
-    predict_drop_remainder = True if FLAGS.use_tpu else False
-    predict_input_fn = file_based_input_fn_builder(
-      input_file=predict_file,
-      seq_length=FLAGS.max_seq_length,
-      is_training=False,
-      drop_remainder=predict_drop_remainder)
+    test_drop_remainder = True if FLAGS.use_tpu else False
+    test_input_fn = input_fn_builder(
+        features=test_features,
+        seq_length=FLAGS.max_seq_length,
+        is_training=False,
+        drop_remainder=test_drop_remainder)
 
-    result = estimator.predict(input_fn=predict_input_fn)
+    result = estimator.evaluate(input_fn=test_input_fn, steps=test_steps)
 
-    output_predict_file = os.path.join(FLAGS.output_dir, "test_results.tsv")
-    with tf.gfile.GFile(output_predict_file, "w") as writer:
-      tf.logging.info("***** Predict results *****")
-      for prediction in result:
-        output_line = "\t".join(str(class_probability) for class_probability in prediction) + "\n"
-        writer.write(output_line)
+    output_test_file = os.path.join(FLAGS.output_dir, "test_results.txt")
+    with tf.gfile.GFile(output_test_file, "w") as writer:
+      tf.logging.info("***** Test results *****")
+      for key in sorted(result.keys()):
+        tf.logging.info("  %s = %s", key, str(result[key]))
+        writer.write("%s = %s\n" % (key, str(result[key])))
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("data_dir")
