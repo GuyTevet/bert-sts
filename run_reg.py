@@ -632,7 +632,7 @@ def input_fn_builder(features, seq_length, is_training, drop_remainder):
 
 # This function is not used by this file but is still used by the Colab and
 # people who depend on it.
-def convert_examples_to_features(examples, label_list, max_seq_length,
+def convert_examples_to_features(examples, max_seq_length,
                                  tokenizer):
   """Convert a set of `InputExample`s to a list of `InputFeatures`."""
 
@@ -641,7 +641,7 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
     if ex_index % 10000 == 0:
       tf.logging.info("Writing example %d of %d" % (ex_index, len(examples)))
 
-    feature = convert_single_example(ex_index, example, label_list,
+    feature = convert_single_example(ex_index, example,
                                      max_seq_length, tokenizer)
 
     features.append(feature)
