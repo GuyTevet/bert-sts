@@ -77,7 +77,7 @@ flags.DEFINE_integer("train_batch_size", 32, "Total batch size for training.")
 
 flags.DEFINE_integer("eval_batch_size", 8, "Total batch size for eval.")
 
-flags.DEFINE_integer("test_batch_size", 8, "Total batch size for test.")
+flags.DEFINE_integer("predict_batch_size", 8, "Total batch size for predict.")
 
 flags.DEFINE_float("learning_rate", 5e-5, "The initial learning rate for Adam.")
 
@@ -170,7 +170,7 @@ class DataProcessor(object):
     raise NotImplementedError()
 
   def get_test_examples(self, data_dir):
-    """Gets a collection of `InputExample`s for the test set."""
+    """Gets a collection of `InputExample`s for prediction."""
     raise NotImplementedError()
 
   def get_labels(self):
@@ -720,7 +720,7 @@ def main(_):
       config=run_config,
       train_batch_size=FLAGS.train_batch_size,
       eval_batch_size=FLAGS.eval_batch_size,
-      predict_batch_size=FLAGS.test_batch_size)
+      predict_batch_size=FLAGS.predict_batch_size)
 
   if FLAGS.do_train:
     train_file = os.path.join(FLAGS.output_dir, "train.tf_record")
