@@ -800,7 +800,7 @@ def main(_):
     with tf.gfile.GFile(output_predict_file, "w") as writer:
       tf.logging.info("***** Predict results *****")
       for prediction in result:
-        writer.write(str(prediction))
+        writer.write(str(prediction) + '\n')
 
 if __name__ == "__main__":
   flags.mark_flag_as_required("data_dir")
