@@ -5,6 +5,8 @@ BERT_BASE_DIR=$MODELS/uncased_L-12_H-768_A-12
 GLUE_DIR=glue_data
 TRAINED_SCORER=sts_output
 INFER_DIR=sts_infer
+STS_URL="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FSTS-B.zip?alt=media&token=bddb94a7-8706-4e0d-a694-1109e12273b5"
+MODEL_URL="https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip"
 
 # get data
 if [ ! -d $GLUE_DIR ]; then
