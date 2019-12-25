@@ -221,37 +221,6 @@ class SimProcessor(DataProcessor):
           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
 
-
-
-# class StsProcessor(DataProcessor):
-#
-#   def get_train_examples(self, data_dir):
-#     """See base class."""
-#     return self._create_examples(
-#         self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
-#
-#   def get_dev_examples(self, data_dir):
-#     """See base class."""
-#     return self._create_examples(
-#         self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
-#
-#   def get_test_examples(self, data_dir):
-#     """See base class."""
-#     return self._create_examples(
-#       self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
-#
-#   def _create_examples(self, lines, set_type):
-#     """Creates examples for the training and dev sets."""
-#     examples = []
-#     for (i, line) in enumerate(lines):
-#       guid = "%s-%s" % (set_type, i)
-#       text_a = tokenization.convert_to_unicode(line[5])
-#       text_b = tokenization.convert_to_unicode(line[6])
-#       label = tokenization.convert_to_unicode(line[4])
-#       examples.append(
-#           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
-#     return examples
-
 class StsProcessor(DataProcessor):
   """Processor for the STS-B data set."""
 
@@ -274,18 +243,22 @@ class StsProcessor(DataProcessor):
   def _create_examples(self, lines, set_type):
     """Creates examples for the training and dev sets."""
     examples = []
+    indices = {}
     for (i, line) in enumerate(lines):
         if i == 0:
+            indices['text_a'] = line.index('sentence1')
+            indices['text_b'] = line.index('sentence2')
+            indices['id'] = line.index('index')
+            try:
+                indices['label'] = line.index('score')
+            except: pass
             continue
-        guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[0]))
-        # text_a = tokenization.convert_to_unicode(line[-3])
-        # text_b = tokenization.convert_to_unicode(line[-2])
-        # label = float(line[-1])
-        text_a = tokenization.convert_to_unicode(line[7])
-        text_b = tokenization.convert_to_unicode(line[8])
+        guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[indices['id']]))
+        text_a = tokenization.convert_to_unicode(line[indices['text_a']])
+        text_b = tokenization.convert_to_unicode(line[indices['text_b']])
         try:
-            label = float(line[9])
-        except IndexError:
+            label = float(line[indices['label']])
+        except KeyError:
             label = 0.
         examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
