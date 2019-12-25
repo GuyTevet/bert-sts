@@ -223,36 +223,72 @@ class SimProcessor(DataProcessor):
 
 
 
+# class StsProcessor(DataProcessor):
+#
+#   def get_train_examples(self, data_dir):
+#     """See base class."""
+#     return self._create_examples(
+#         self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
+#
+#   def get_dev_examples(self, data_dir):
+#     """See base class."""
+#     return self._create_examples(
+#         self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
+#
+#   def get_test_examples(self, data_dir):
+#     """See base class."""
+#     return self._create_examples(
+#       self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
+#
+#   def _create_examples(self, lines, set_type):
+#     """Creates examples for the training and dev sets."""
+#     examples = []
+#     for (i, line) in enumerate(lines):
+#       guid = "%s-%s" % (set_type, i)
+#       text_a = tokenization.convert_to_unicode(line[5])
+#       text_b = tokenization.convert_to_unicode(line[6])
+#       label = tokenization.convert_to_unicode(line[4])
+#       examples.append(
+#           InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+#     return examples
+
 class StsProcessor(DataProcessor):
+  """Processor for the STS-B data set."""
 
   def get_train_examples(self, data_dir):
     """See base class."""
     return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-train.tsv")), "train")
+        self._read_tsv(os.path.join(data_dir, "train.tsv")), "train")
 
   def get_dev_examples(self, data_dir):
     """See base class."""
     return self._create_examples(
-        self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-dev.tsv")), "dev")
+        self._read_tsv(os.path.join(data_dir, "dev.tsv")), "dev")
 
+  # ADDED
   def get_test_examples(self, data_dir):
     """See base class."""
     return self._create_examples(
-      self._read_tsv(os.path.join(data_dir, "stsbenchmark/sts-test.tsv")), "test")
+        self._read_tsv(os.path.join(data_dir, "test.tsv")), "test")
 
   def _create_examples(self, lines, set_type):
     """Creates examples for the training and dev sets."""
     examples = []
     for (i, line) in enumerate(lines):
-      guid = "%s-%s" % (set_type, i)
-      text_a = tokenization.convert_to_unicode(line[5])
-      text_b = tokenization.convert_to_unicode(line[6])
-      label = tokenization.convert_to_unicode(line[4])
-      examples.append(
-          InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+        if i == 0:
+            continue
+        guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[0]))
+        # text_a = tokenization.convert_to_unicode(line[-3])
+        # text_b = tokenization.convert_to_unicode(line[-2])
+        # label = float(line[-1])
+        text_a = tokenization.convert_to_unicode(line[7])
+        text_b = tokenization.convert_to_unicode(line[8])
+        try:
+            label = float(line[9])
+        except IndexError:
+            label = 0.
+        examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
-
-
 
 def convert_single_example(ex_index, example, max_seq_length,
                            tokenizer):
